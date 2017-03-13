@@ -18,12 +18,18 @@
         }
         table {
             border-collapse: collapse;
-            /*cellpadding:"8";*/
         }
         td {
             padding: 8px;
         }
-        .doneText{
+        input[title="undoneText"]{
+            border: none;
+            background: transparent;
+            color: brown;
+        }
+        input[title="doneText"]{
+            border:none;
+            background: transparent;
             color: gray;
             text-decoration:line-through;
         }
@@ -34,117 +40,97 @@
 <body>
     <div align="center">
 
-        <%--<form:form action="filterSelected" method="get" >--%>
-            <%--<select title="filterBox" name="filterBox" onchange="this.form.submit();" >--%>
+        <form:form method="post" commandName="filterState" action="filter">
+            <form:select path="filterSelected" items="${filterList}"/>
+            <input type="submit" value="Show"/>
+        </form:form>
 
-            <form:form method="post" commandName="filterState" action="filter">
-
-                <form:select path="filterSelected" items="${filterList}"/>
-                <input type="submit" value="Show"/>
-
-                <%--<form:option value="all" label="All"/>--%>
-                <%--<form:option value="allDone" label="Done"/>--%>
-                <%--<form:option value="allUndone" label="Undone"/>--%>
-                <%--<c:choose>--%>
-                    <%--<c:when test="${filterSelected == 'all'}">--%>
-                        <%--<option value="all" selected>All</option>--%>
-                    <%--</c:when>--%>
-                    <%--<c:otherwise>--%>
-                        <%--<option value="all">All</option>--%>
-                    <%--</c:otherwise>--%>
-                <%--</c:choose>--%>
-
-                <%--<c:choose>--%>
-                    <%--<c:when test="${filterSelected == 'done'}">--%>
-                        <%--<option value="allDone" selected>Done</option>--%>
-                    <%--</c:when>--%>
-                    <%--<c:otherwise>--%>
-                        <%--<option value="allDone">Done</option>--%>
-                    <%--</c:otherwise>--%>
-                <%--</c:choose>--%>
-
-                <%--<c:choose>--%>
-                    <%--<c:when test="${filterSelected == 'undone'}">--%>
-                        <%--<option value="allUndone" selected>Undone</option>--%>
-                    <%--</c:when>--%>
-                    <%--<c:otherwise>--%>
-                        <%--<option value="allUndone">Undone</option>--%>
-                    <%--</c:otherwise>--%>
-                <%--</c:choose>--%>
-                </form:form>
-            <%--</select>--%>
-        <%--</form:form>--%>
-
-        <form action="updateTask/add" method="post">
+        <form action="add" method="post">
             <input type="submit" name="add" value="Add"/>
         </form>
 
-            <table>
-                <caption><h3>TODO List</h3></caption>
-                <c:forEach items="${tasks}" var="task" varStatus="id">
-                    <%--<c:set var="controller" value="updateTask/${id.index}"/>--%>
+        <table>
+            <caption><h3>TODO List</h3></caption>
 
+            <c:forEach items="${tasks}" var="task" varStatus="id">
+                <spring:url value="updateTask/${id.index}" var="controller"/>
+                <tr>
+                    <c:choose>
+                        <c:when test="${task.status == 'true'}">
+                            <form:form action="${controller}" method="post">
+                                <td><input type="submit" value="Delete" name="delete"/></td>
+                            </form:form>
 
-                    <%--<spring:url value="test/${id.index}" var="buttonUrl" />--%>
+                            <form:form action="${controller}" method="post">
+                                <td><input type="submit" value="Undone" name="undone"/></td>
+                            </form:form>
 
-                    <%--<c:remove var="controller"/>--%>
-                    <%--<c:set var="controller" value="updateTask/${id.index}"/>--%>
-                    <spring:url value="updateTask/${id.index}" var="controller"/>
-                    <%--<c:set var="listNumber" value="0" scope="page"/>--%>
-                    <%--<c:out value="${controller}"/>--%>
-                        <tr>
-                            <c:choose>
-                                <c:when test="${task.status == 'true'}">
-                                    <%--<c:if test="${filterState.filterSelected == 'All' || filterState.filterSelected == 'Done'}">--%>
-                                        <%--<td><input type="submit" name="undone" value="${id.index} Undone"/></td>--%>
-                                        <form:form action="${controller}/edit" method="post" modelAttribute="text">
-                                            <td><input type="submit" value="Edit"/></td>
-                                        </form:form>
-                                        <%--<td><button onclick="location.href='${controller}/edit'">Edit</button></td>--%>
-                                        <td><button onclick="location.href='${controller}/delete'">Delete</button></td>
-                                        <td><button onclick="location.href='${controller}/undone'">Undone</button></td>
-                                        <td contenteditable="true" class="doneText">${task.text}</td>
-                                        <%--<c:set var="listNumber" value="${listNumber + 1}" scope="page"/>--%>
-                                    <%--</c:if>--%>
-                                </c:when>
-                                <c:otherwise>
-                                    <%--<c:if test="${filterState.filterSelected == 'All' || filterState.filterSelected == 'Undone'}">--%>
-                                        <form:form action="${controller}/edit" method="post" modelAttribute="text">
-                                            <td><input type="submit" value="Edit"/></td>
-                                            <c:set var="text" value="${task.text}"/>
-                                        </form:form>
-                                        <%--<td><button onclick="location.href='${controller}/edit'">Edit</button></td>--%>
-                                        <td><button onclick="location.href='${controller}/delete'">Delete</button></td>
-                                        <td><button onclick="location.href='${controller}/done'">Done!</button></td>
-                                        <td contenteditable="true">${task.text}</td>
-                                        <%--<c:set var="listNumber" value="${listNumber + 1}" scope="page"/>--%>
-                                    <%--</c:if>--%>
-                                </c:otherwise>
-                            </c:choose>
-                        </tr>
-                </c:forEach>
+                            <form:form action="${controller}" method="post">
+                                <td><input type="text" title="doneText" name="edit" value="${task.text}"/></td>
+                            </form:form>
+                        </c:when>
 
-            </table>
+                        <c:otherwise>
+                            <form:form action="${controller}" method="post">
+                                <td><input type="submit" value="Delete" name="delete"/></td>
+                            </form:form>
 
-            Page
-            <%--<c:out value="${listNumber}"/>--%>
-            <c:set var="lastPage" value="${count%10}"/>
-            <c:set var="pageNum" value="${count/10}"/>
-            <c:if test="${lastPage > 0}">
-                <c:set var="pageNum" value="${pageNum + 1}"/>
-            </c:if>
+                            <form:form action="${controller}" method="post">
+                                <td><input type="submit" value="Done!" name="done"/></td>
+                            </form:form>
 
-            <c:forEach begin="1" end="${pageNum}" varStatus="loop">
-                <c:choose>
-                    <c:when test="${currentPage != loop.count}">
-                        <a href="<c:url value="paging/${loop.count}" />"> ${loop.count} </a>
-                    </c:when>
-                    <c:otherwise>
-                        <c:out value="${loop.count}"/>
-                    </c:otherwise>
-                </c:choose>
+                            <form:form action="${controller}" method="post">
+                                <td><input type="text" title="undoneText" name="edit" value="${task.text}"/></td>
+                            </form:form>
+                        </c:otherwise>
+                    </c:choose>
+                </tr>
             </c:forEach>
 
+            <c:choose>
+                <c:when test="${tasks.size() == 0 && currentPage > 1}">
+                    <c:redirect url="paging/${currentPage - 1}"/>
+                </c:when>
+            </c:choose>
+
+        </table>
+
+        <c:choose>
+            <c:when test="${count == 0}">
+                <c:choose>
+                    <c:when test="${filterState.filterSelected != 'Done'}">
+                        Everything is done!<br><br>
+                        Now you can relax a bit.<br>
+                        Take a cup of whiskey and add next todo task to become sober.
+                    </c:when>
+                    <c:otherwise>
+                        Nothing is done.<br><br>
+                        You should work harder.<br>
+                        Pull up all your courage and go ahead, guy.
+                    </c:otherwise>
+                </c:choose>
+            </c:when>
+
+            <c:otherwise>
+                Page
+                <c:set var="lastPage" value="${count%10}"/>
+                <c:set var="pageNum" value="${count/10}"/>
+                <c:if test="${lastPage > 0}">
+                    <c:set var="pageNum" value="${pageNum + 1}"/>
+                </c:if>
+
+                <c:forEach begin="1" end="${pageNum}" varStatus="loop">
+                    <c:choose>
+                        <c:when test="${currentPage != loop.count}">
+                            <a href="<c:url value="paging/${loop.count}" />"> ${loop.count} </a>
+                        </c:when>
+                        <c:otherwise>
+                            <c:out value="${loop.count}"/>
+                        </c:otherwise>
+                    </c:choose>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
     </div>
 </body>
 </html>

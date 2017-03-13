@@ -7,7 +7,7 @@ import javax.persistence.*;
 @NamedQuery(name="TaskEntity.getById", query = "from TaskEntity where idTask=? ")
 public class TaskEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idTask;
     private String text;
     private boolean status;

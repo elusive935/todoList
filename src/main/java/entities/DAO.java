@@ -5,7 +5,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Query;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DAO {
@@ -68,24 +67,17 @@ public class DAO {
 
         Query query;
         if (filterState.equals("Done")) {
-//            query = session.createQuery("from TaskEntity join StatusEntity on StatusEntity.status=? where TaskEntity.idTask = StatusEntity.idTask");
             query = session.createQuery("from TaskEntity as task where task.status = ?");
             query.setInteger(0, 1);
-            query.setFirstResult((page-1)*10);
-            query.setMaxResults(10);
         } else if (filterState.equals("Undone")) {
-//            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
             query = session.createQuery("from TaskEntity as task where task.status = ?");
-//            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
             query.setInteger(0, 0);
-            query.setFirstResult((page-1)*10);
-            query.setMaxResults(10);
         } else {
             query = session.createQuery("from TaskEntity");
-            query.setFirstResult((page-1)*10);
-            query.setMaxResults(10);
         }
 
+        query.setFirstResult((page-1) * pageLength);
+        query.setMaxResults(pageLength);
         List<TaskEntity> result = (List<TaskEntity>)query.list();
 
         session.getTransaction().commit();
@@ -103,13 +95,10 @@ public class DAO {
 
         Query query;
         if (filterState.equals("Done")) {
-//            query = session.createQuery("from TaskEntity join StatusEntity on StatusEntity.status=? where TaskEntity.idTask = StatusEntity.idTask");
             query = session.createQuery("select count(*) from TaskEntity as task where task.status = ?");
             query.setInteger(0, 1);
         } else if (filterState.equals("Undone")) {
-//            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
             query = session.createQuery("select count(*) from TaskEntity as task where task.status = ?");
-//            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
             query.setInteger(0, 0);
         } else {
             query = session.createQuery("select count(*) from TaskEntity");
