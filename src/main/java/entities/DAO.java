@@ -21,10 +21,7 @@ public class DAO {
         session.beginTransaction();
 
         TaskEntity taskEntity = session.get(TaskEntity.class, id);
-        Query query = session.getNamedQuery("StatusEntity.byTaskId").setInteger(0, id);
-        StatusEntity statusEntity = (StatusEntity) query.list().get(0);
         session.delete(taskEntity);
-        session.delete(statusEntity);
 
         session.getTransaction().commit();
         session.close();
@@ -36,9 +33,7 @@ public class DAO {
 
         TaskEntity taskEntity = session.get(TaskEntity.class, task.getIdTask());
         taskEntity.setText(task.getText());
-        Query query = session.getNamedQuery("StatusEntity.byTaskId").setInteger(0, task.getIdTask());
-        StatusEntity statusEntity = (StatusEntity) query.list().get(0);
-        statusEntity.setStatus(!status ? 0 : 1);
+        taskEntity.setStatus(status);
 
         session.getTransaction().commit();
         session.close();
@@ -49,10 +44,6 @@ public class DAO {
         session.beginTransaction();
 
         session.save(task);
-        StatusEntity statusEntity = new StatusEntity();
-        statusEntity.setIdTask(task.getIdTask());
-        statusEntity.setStatus(0);
-        session.save(statusEntity);
 
         session.getTransaction().commit();
         session.close();
@@ -71,45 +62,32 @@ public class DAO {
         return taskEntity;
     }
 
-    public StatusEntity getStatusByTaskId(int id){
-        Session session = getSession();
-        session.beginTransaction();
-
-        Query query = session.getNamedQuery("StatusEntity.byTaskId").setInteger(0, id);
-        StatusEntity statusEntity = (StatusEntity) query.list().get(0);
-
-        session.getTransaction().commit();
-        session.close();
-        return statusEntity;
-    }
-
-    public List<Task> getTaskList(String filterState){
+    public List<TaskEntity> getTaskList(String filterState, int page){
         Session session = getSession();
         session.beginTransaction();
 
         Query query;
         if (filterState.equals("Done")) {
 //            query = session.createQuery("from TaskEntity join StatusEntity on StatusEntity.status=? where TaskEntity.idTask = StatusEntity.idTask");
-            query = session.createQuery("from TaskEntity as task join StatusEntity as status on task.idTask = status.idTask where status.status=?");
+            query = session.createQuery("from TaskEntity as task where task.status = ?");
             query.setInteger(0, 1);
+            query.setFirstResult((page-1)*10);
+            query.setMaxResults(10);
         } else if (filterState.equals("Undone")) {
 //            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
-            query = session.createQuery("from TaskEntity as task join StatusEntity as status on task.idTask = status.idTask where status.status=?");
+            query = session.createQuery("from TaskEntity as task where task.status = ?");
 //            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
             query.setInteger(0, 0);
+            query.setFirstResult((page-1)*10);
+            query.setMaxResults(10);
         } else {
             query = session.createQuery("from TaskEntity");
+            query.setFirstResult((page-1)*10);
+            query.setMaxResults(10);
         }
 
-        List<Task> result = new ArrayList<Task>();
-        List<TaskEntity> taskList = (List<TaskEntity>)query.list();
+        List<TaskEntity> result = (List<TaskEntity>)query.list();
 
-        for (TaskEntity task:taskList) {
-            StatusEntity status = getStatusByTaskId(task.getIdTask());
-            boolean resultStatus = status.getStatus() != 0;
-            result.add(new Task(task.getText(), resultStatus, task.getIdTask()));
-        }
-        
         session.getTransaction().commit();
         session.close();
         return result;
@@ -117,5 +95,32 @@ public class DAO {
 
     private Session getSession() throws HibernateException {
         return sessionFactory.openSession();
+    }
+
+    public long getTaskCount(String filterState){
+        Session session = getSession();
+        session.beginTransaction();
+
+        Query query;
+        if (filterState.equals("Done")) {
+//            query = session.createQuery("from TaskEntity join StatusEntity on StatusEntity.status=? where TaskEntity.idTask = StatusEntity.idTask");
+            query = session.createQuery("select count(*) from TaskEntity as task where task.status = ?");
+            query.setInteger(0, 1);
+        } else if (filterState.equals("Undone")) {
+//            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
+            query = session.createQuery("select count(*) from TaskEntity as task where task.status = ?");
+//            query = session.createQuery("from TaskEntity join StatusEntity on TaskEntity.idTask = StatusEntity.idTask where StatusEntity.status=?");
+            query.setInteger(0, 0);
+        } else {
+            query = session.createQuery("select count(*) from TaskEntity");
+        }
+
+        List<Long> result = (List<Long>)query.list();
+
+        session.getTransaction().commit();
+        session.close();
+
+        return result.get(0);
+
     }
 }

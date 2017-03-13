@@ -10,7 +10,7 @@ public class TaskEntity {
     @GeneratedValue
     private int idTask;
     private String text;
-
+    private boolean status;
 
     public int getIdTask() {
         return idTask;
@@ -26,6 +26,14 @@ public class TaskEntity {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 
     @Override

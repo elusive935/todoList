@@ -90,12 +90,12 @@
                     <%--<c:remove var="controller"/>--%>
                     <%--<c:set var="controller" value="updateTask/${id.index}"/>--%>
                     <spring:url value="updateTask/${id.index}" var="controller"/>
-                    <c:set var="listNumber" value="0" scope="page"/>
+                    <%--<c:set var="listNumber" value="0" scope="page"/>--%>
                     <%--<c:out value="${controller}"/>--%>
                         <tr>
                             <c:choose>
                                 <c:when test="${task.status == 'true'}">
-                                    <c:if test="${filterState.filterSelected == 'All' || filterState.filterSelected == 'Done'}">
+                                    <%--<c:if test="${filterState.filterSelected == 'All' || filterState.filterSelected == 'Done'}">--%>
                                         <%--<td><input type="submit" name="undone" value="${id.index} Undone"/></td>--%>
                                         <form:form action="${controller}/edit" method="post" modelAttribute="text">
                                             <td><input type="submit" value="Edit"/></td>
@@ -103,12 +103,12 @@
                                         <%--<td><button onclick="location.href='${controller}/edit'">Edit</button></td>--%>
                                         <td><button onclick="location.href='${controller}/delete'">Delete</button></td>
                                         <td><button onclick="location.href='${controller}/undone'">Undone</button></td>
-                                        <td contenteditable="true">${task.text}</td>
-                                        <c:set var="listNumber" value="${listNumber + 1}" scope="page"/>
-                                    </c:if>
+                                        <td contenteditable="true" class="doneText">${task.text}</td>
+                                        <%--<c:set var="listNumber" value="${listNumber + 1}" scope="page"/>--%>
+                                    <%--</c:if>--%>
                                 </c:when>
                                 <c:otherwise>
-                                    <c:if test="${filterState.filterSelected == 'All' || filterState.filterSelected == 'Undone'}">
+                                    <%--<c:if test="${filterState.filterSelected == 'All' || filterState.filterSelected == 'Undone'}">--%>
                                         <form:form action="${controller}/edit" method="post" modelAttribute="text">
                                             <td><input type="submit" value="Edit"/></td>
                                             <c:set var="text" value="${task.text}"/>
@@ -116,9 +116,9 @@
                                         <%--<td><button onclick="location.href='${controller}/edit'">Edit</button></td>--%>
                                         <td><button onclick="location.href='${controller}/delete'">Delete</button></td>
                                         <td><button onclick="location.href='${controller}/done'">Done!</button></td>
-                                        <td contenteditable="true"">${task.text}</td>
-                                        <c:set var="listNumber" value="${listNumber + 1}" scope="page"/>
-                                    </c:if>
+                                        <td contenteditable="true">${task.text}</td>
+                                        <%--<c:set var="listNumber" value="${listNumber + 1}" scope="page"/>--%>
+                                    <%--</c:if>--%>
                                 </c:otherwise>
                             </c:choose>
                         </tr>
@@ -127,9 +127,22 @@
             </table>
 
             Page
-            <c:out value="${listNumber}"/>
-            <c:forEach begin="1" end="${listNumber/10}" varStatus="loop">
-                <c:out value="${loop.count}"/>
+            <%--<c:out value="${listNumber}"/>--%>
+            <c:set var="lastPage" value="${count%10}"/>
+            <c:set var="pageNum" value="${count/10}"/>
+            <c:if test="${lastPage > 0}">
+                <c:set var="pageNum" value="${pageNum + 1}"/>
+            </c:if>
+
+            <c:forEach begin="1" end="${pageNum}" varStatus="loop">
+                <c:choose>
+                    <c:when test="${currentPage != loop.count}">
+                        <a href="<c:url value="paging/${loop.count}" />"> ${loop.count} </a>
+                    </c:when>
+                    <c:otherwise>
+                        <c:out value="${loop.count}"/>
+                    </c:otherwise>
+                </c:choose>
             </c:forEach>
 
     </div>

@@ -2,15 +2,12 @@ package controller;
 
 import entities.DAO;
 import entities.FilterState;
-import entities.Task;
 import entities.TaskEntity;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import workflow.HibernateSessionFactory;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +17,7 @@ public class TodoListController {
     private DAO dao = new DAO(HibernateSessionFactory.getSessionFactory());
     private FilterState filterState = new FilterState();
     private List<String> filterList = new ArrayList<String>();
+    private int page = 1;
 
     {
         filterList.add("All");
@@ -32,10 +30,12 @@ public class TodoListController {
     @RequestMapping(value = "todolist.html", method = RequestMethod.GET)
     public ModelAndView todoListShow(){
         ModelAndView modelAndView = new ModelAndView("index");
-        List<Task> tasks = dao.getTaskList(filterState.getFilterSelected());
+        List<TaskEntity> tasks = dao.getTaskList(filterState.getFilterSelected(), page);
         modelAndView.addObject("tasks", tasks);
         modelAndView.addObject("filterState", filterState);
         modelAndView.addObject("filterList", filterList);
+        modelAndView.addObject("count", dao.getTaskCount(filterState.getFilterSelected()));
+        modelAndView.addObject("currentPage", page);
         return modelAndView;
     }
 
@@ -81,13 +81,13 @@ public class TodoListController {
 //        } else
             if (op.equals("delete")) {
             System.out.println("Delete method invoked for taskNum = " + taskId);
-            dao.delete(dao.getTaskList("All").get(taskId).getIdTask());
+            dao.delete(dao.getTaskList("All", page).get(taskId).getIdTask());
         } else if (op.equals("done")) {
             System.out.println("Done method invoked for taskNum = " + taskId);
-            dao.update(dao.getTaskById(dao.getTaskList("All").get(taskId).getIdTask()), true);
+            dao.update(dao.getTaskById(dao.getTaskList("All", page).get(taskId).getIdTask()), true);
         } else if (op.equals("undone")) {
             System.out.println("Undone method invoked for taskNum = " + taskId);
-            dao.update(dao.getTaskById(dao.getTaskList("All").get(taskId).getIdTask()), false);
+            dao.update(dao.getTaskById(dao.getTaskList("All", page).get(taskId).getIdTask()), false);
         }
 
         return "redirect:/todolist.html";
@@ -99,12 +99,19 @@ public class TodoListController {
                              @RequestParam("text") String newText){
         if (op.equals("edit")) {
             System.out.println("Edit method invoked for taskNum = " + taskId + " with new text = " + newText);
-            int id = dao.getTaskList("All").get(taskId).getIdTask();
+            int id = dao.getTaskList("All", page).get(taskId).getIdTask();
             TaskEntity updatedTask = dao.getTaskById(id);
             updatedTask.setText(newText);
-            dao.update(updatedTask, dao.getStatusByTaskId(id).getStatus() != 0);
+            dao.update(updatedTask, dao.getTaskById(id).isStatus() != false);
         }
 
+        return "redirect:/todolist.html";
+    }
+
+    @RequestMapping(value="paging/{pageNum}", method = RequestMethod.GET)
+    public String paging(@PathVariable("pageNum") int pageNum) {
+        page = pageNum;
+        System.out.println("Paging method invoked for page number " + pageNum);
         return "redirect:/todolist.html";
     }
 }
